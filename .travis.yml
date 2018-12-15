@@ -5,6 +5,5 @@ compiler:
 os:
   - linux
   - osx
-  - windows
 script:
   - $CC -Wall -Wextra -g -O -o envfile envfile.c
