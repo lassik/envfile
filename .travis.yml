@@ -5,5 +5,18 @@ compiler:
 os:
   - linux
   - osx
+before_install:
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
 script:
   - $CC -Wall -Wextra -g -O -o envfile envfile.c
+addons:
+  coverity_scan:
+    project:
+      name: "lassik/envfile"
+      description: "Unix utility to read environment variables from .ini file"
+    notification_email: lassi@lassi.io
+    build_command: "$CC -Wall -Wextra -g -O -o envfile envfile.c"
+    branch_pattern: coverity_scan
+env:
+  global:
+    - secure: "iS1+TROBzOSD3LSBta8G97ABm+6JXHhbY8wlTEvZSDySVrH70g9Wj5jfKSLrWPH9qhJ+080ZwtuBa8aXTSK6yJ7B892P4i46Pu1yUVT9TBHj88gDK77Oe6TfRW6FxMv7JCnJd5Eq1N+rqKE+xBpELP6/ZQFHSGuunfreE1T5fq4QvTvGKnAhUHzg/3Yo7eJ3ZTQ/8vvhuMGlRnfJMr/ZM82KNEYkjaqvdf71UCVXexB+TrWTarzfCfJBKAdhMyZ40YFjh+5pj2tUss8TyEuGVrKNvSp45UPBipLOFMxBNHZfDdv0ech5K2urSiJgDWbxjCHCib/Xex9CQLKn/I0SQliwvQ7EwSHYN2cToNGnlav3NLHbsbr1rNxSL8rDX3qIPehX3dPFMFEzfBo7pTQMtHaETUwMZnAWSL2xNgulxuroYkxsnGHuMC6uylxk1HCtb+irS++4l26j4NRD/4XyUQ5heJZKRWG404EyhjfVSkGpymsxpaDUMtHoXJarSbSHvDUWN4BSIVEVWlacO1Hu5VF3rrVJVJXGuFUwvH+68gjXr9je36xNRbf0oq87JpOD1PuGCSU2nPqJHY/JtOB+YXWYT1KIFeAf13AQAZIPoVAb4WPeLztMTeWEDd2X+rQpdiB78IBsfgG8Lhk+uXAo4TYx/RCiqowrddMUi3zKzfk="
