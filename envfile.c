@@ -26,8 +26,6 @@ extern char **environ;
 static char buf[4096];
 static char *buflim;
 static char *pos;
-static char *envfilename;
-static FILE *envinput;
 static int initflag;
 static int verbosity;
 
@@ -144,6 +142,45 @@ parse(void)
 	}
 }
 
+static void
+read_file_into_buf(const char *envfilename)
+{
+	FILE *envinput;
+	size_t len;
+
+	if (!strcmp(envfilename, "-")) {
+		envinput = stdin;
+	} else if (!(envinput = fopen(envfilename, "rb"))) {
+		fprintf(stderr, "cannot open env file\n");
+		exit(1);
+	}
+	len = fread(buf, 1, sizeof(buf), envinput);
+	if (ferror(envinput)) {
+		fprintf(stderr, "read error");
+	}
+	if (!feof(envinput)) {
+		fprintf(stderr, "too long");
+	}
+	pos = buf;
+	buflim = buf + len;
+}
+
+static void
+clear_environment(void)
+{
+	if (!(environ = calloc(1, sizeof(*environ)))) {
+		fprintf(stderr, "out of memory\n");
+		exit(1);
+	}
+}
+
+static void
+run_program(char **argv)
+{
+	execvp(*argv, argv);
+	fprintf(stderr, "cannot run %s: %s\n", *argv, strerror(errno));
+}
+
 int
 main(int argc, char **argv)
 {
@@ -166,32 +203,13 @@ main(int argc, char **argv)
 	if (!*argv) {
 		usage();
 	}
-	envfilename = *argv++;
-	if (!strcmp(envfilename, "-")) {
-		envinput = stdin;
-	} else if (!(envinput = fopen(envfilename, "rb"))) {
-		fprintf(stderr, "cannot open env file\n");
-		exit(1);
-	}
+	read_file_into_buf(*argv++);
 	if (initflag) {
-		if (!(environ = calloc(1, sizeof(*environ)))) {
-			fprintf(stderr, "out of memory\n");
-			exit(1);
-		}
+		clear_environment();
 	}
-	size_t len = fread(buf, 1, sizeof(buf), envinput);
-	if (ferror(envinput)) {
-		fprintf(stderr, "read error");
-	}
-	if (!feof(envinput)) {
-		fprintf(stderr, "too long");
-	}
-	pos = buf;
-	buflim = buf + len;
 	parse();
 	if (*argv) {
-		execvp(*argv, argv);
-		fprintf(stderr, "cannot run %s: %s\n", *argv, strerror(errno));
+		run_program(argv);
 	}
 	return 0;
 }
