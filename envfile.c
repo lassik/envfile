@@ -179,6 +179,7 @@ run_program(char **argv)
 {
 	execvp(*argv, argv);
 	fprintf(stderr, "cannot run %s: %s\n", *argv, strerror(errno));
+	exit(126);
 }
 
 int
