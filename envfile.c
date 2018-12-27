@@ -143,26 +143,32 @@ parse(void)
 }
 
 static void
-read_file_into_buf(const char *filename)
+read_stream_into_buf(FILE *stream)
 {
-	FILE *input;
 	size_t len;
 
-	if (!strcmp(filename, "-")) {
-		input = stdin;
-	} else if (!(input = fopen(filename, "rb"))) {
-		fprintf(stderr, "cannot open env file\n");
-		exit(1);
-	}
-	len = fread(buf, 1, sizeof(buf), input);
-	if (ferror(input)) {
+	len = fread(buf, 1, sizeof(buf), stream);
+	if (ferror(stream)) {
 		fprintf(stderr, "read error");
 	}
-	if (!feof(input)) {
+	if (!feof(stream)) {
 		fprintf(stderr, "too long");
 	}
 	pos = buf;
 	buflim = buf + len;
+}
+
+static void
+read_file_into_buf(const char *filename)
+{
+	FILE *stream;
+
+	if (!(stream = fopen(filename, "rb"))) {
+		fprintf(stderr, "cannot open env file\n");
+		exit(1);
+	}
+	read_stream_into_buf(stream);
+	fclose(stream);
 }
 
 static void
@@ -185,6 +191,7 @@ run_program(char **argv)
 int
 main(int argc, char **argv)
 {
+	const char *filename;
 	int ch;
 
 	while ((ch = getopt(argc, argv, "iv")) != -1) {
@@ -204,7 +211,12 @@ main(int argc, char **argv)
 	if (!*argv) {
 		usage();
 	}
-	read_file_into_buf(*argv++);
+	filename = *argv++;
+	if (!strcmp(filename, "-")) {
+		read_stream_into_buf(stdin);
+	} else {
+		read_file_into_buf(filename);
+	}
 	if (initflag) {
 		clear_environment();
 	}
