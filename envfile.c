@@ -143,22 +143,22 @@ parse(void)
 }
 
 static void
-read_file_into_buf(const char *envfilename)
+read_file_into_buf(const char *filename)
 {
-	FILE *envinput;
+	FILE *input;
 	size_t len;
 
-	if (!strcmp(envfilename, "-")) {
-		envinput = stdin;
-	} else if (!(envinput = fopen(envfilename, "rb"))) {
+	if (!strcmp(filename, "-")) {
+		input = stdin;
+	} else if (!(input = fopen(filename, "rb"))) {
 		fprintf(stderr, "cannot open env file\n");
 		exit(1);
 	}
-	len = fread(buf, 1, sizeof(buf), envinput);
-	if (ferror(envinput)) {
+	len = fread(buf, 1, sizeof(buf), input);
+	if (ferror(input)) {
 		fprintf(stderr, "read error");
 	}
-	if (!feof(envinput)) {
+	if (!feof(input)) {
 		fprintf(stderr, "too long");
 	}
 	pos = buf;
